@@ -1,23 +1,28 @@
 #include <iostream>
 #include <random>
+#include <thread>
 #include "TrafficLight.h"
 
 /* Implementation of class "MessageQueue" */
 
 
-template <typename T>
-T MessageQueue<T>::receive()
-{
-    // FP.5a : The method receive should use std::unique_lock<std::mutex> and _condition.wait() 
-    // to wait for and receive new messages and pull them from the queue using move semantics. 
-    // The received object should then be returned by the receive function. 
-}
+// template <typename T>
+// T MessageQueue<T>::receive()
+// {
+//     // FP.5a : The method receive should use std::unique_lock<std::mutex> and _condition.wait() 
+//     // to wait for and receive new messages and pull them from the queue using move semantics. 
+//     // The received object should then be returned by the receive function.
+// }
 
 template <typename T>
 void MessageQueue<T>::send(T &&msg)
 {
-    // FP.4a : The method send should use the mechanisms std::lock_guard<std::mutex> 
-    // as well as _condition.notify_one() to add a new message to the queue and afterwards send a notification.
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    std::cout << "Message " << msg << " has been sent to the queue" << std::endl;
+	std::lock_guard<std::mutex> lock(_mutex);
+	_messages.push_back(std::move(msg));
+	_cond.notify_one();
 }
 
 /* Implementation of class "TrafficLight" */
@@ -27,6 +32,7 @@ TrafficLight::TrafficLight()
 {
     _currentPhase = TrafficLightPhase::red;
     _type = ObjectType::objectTrafficLight;
+	_queue = std::shared_ptr<MessageQueue<TrafficLightPhase>>(new MessageQueue<TrafficLightPhase>);
 }
 
 void TrafficLight::waitForGreen()
@@ -70,7 +76,7 @@ void TrafficLight::cycleThroughPhases()
         {
           // Toggle traffic light
           _currentPhase = _currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
-          // TODO: send message to the queue
+          _queue->send(std::move(_currentPhase));
         }
       
         // reset stop watch for next cycle
