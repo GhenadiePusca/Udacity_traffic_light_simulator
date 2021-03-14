@@ -76,15 +76,14 @@ void TrafficLight::cycleThroughPhases()
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         // compute time difference to stop watch
-        long timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastUpdate).count();
+        long timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastUpdate).count();
         if (timeSinceLastUpdate >= cycleDuration)
         {
-          // Toggle traffic light
-          _currentPhase = _currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
-          _queue->send(std::move(_currentPhase));
+            // Toggle traffic light
+        	_currentPhase = _currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
+            _queue->send(std::move(_currentPhase));
+            // reset stop watch for next cycle
+        	lastUpdate = std::chrono::system_clock::now();
         }
-      
-        // reset stop watch for next cycle
-        lastUpdate = std::chrono::system_clock::now();
     }
 }
