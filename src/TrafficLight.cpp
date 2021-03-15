@@ -21,9 +21,6 @@ T MessageQueue<T>::receive()
 template <typename T>
 void MessageQueue<T>::send(T &&msg)
 {
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    std::cout << "Message " << msg << " has been sent to the queue" << std::endl;
 	std::lock_guard<std::mutex> lock(_mutex);
 	_messages.push_back(std::move(msg));
 	_cond.notify_one();
@@ -65,7 +62,7 @@ void TrafficLight::cycleThroughPhases()
     std::mt19937 eng(rd());
     std::uniform_int_distribution<> distr(4, 6);
 
-    double cycleDuration = distr(eng); // duration of a single simulation cycle in ms
+    double cycleDuration = distr(eng); // duration of a single simulation cycle in seconds
     std::chrono::time_point<std::chrono::system_clock> lastUpdate;
 
     // init stop watch
